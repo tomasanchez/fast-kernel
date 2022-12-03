@@ -1,6 +1,8 @@
+import asyncio
+import json
 from typing import TypeVar
 
-from kafka import KafkaProducer
+from aiokafka import AIOKafkaProducer
 
 from app.scehmas.base import CamelCaseModel
 
@@ -8,26 +10,40 @@ T = TypeVar("T", bound=CamelCaseModel)
 
 
 class JsonCamelCaseEncoder:
-    enconding = "utf-8"
+    encoding = "utf-8"
 
     def encode(self, obj: T) -> bytes:
-        return obj.json(by_alias=True, exclude_none=True).encode(encoding=self.enconding)
+        return obj.json(by_alias=True, exclude_none=True).encode(encoding=self.encoding)
+
+
+class BytesEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, bytes):
+            return obj.decode('utf-8')
+
+        if isinstance(obj, CamelCaseModel):
+            return JsonCamelCaseEncoder().encode(obj)
+
+        return json.JSONEncoder.default(self, obj)
 
 
 class KafkaService:
     INSTRUCTION_KAFKA_TOPIC = "instructions"
-    port = "29092"
-    encoder = JsonCamelCaseEncoder()
-    producer = KafkaProducer(
-        bootstrap_servers=f"localhost:{port}")
 
-    def publish(self, data: T):
-        self.producer.send(topic=self.INSTRUCTION_KAFKA_TOPIC,
-                           value=self.encoder.encode(data))
-        self.flush()
+    def __init__(self, port="29092"):
+        self.port = port
 
-    def flush(self):
-        self.producer.flush()
-        self.producer.close()
-        self.producer = KafkaProducer(
-            bootstrap_servers=f"localhost:{self.port}")
+    @property
+    def producer(self):
+        return AIOKafkaProducer(
+            bootstrap_servers=f"localhost:{self.port}",
+        )
+
+    async def publish(self, data: list[T]):
+        producer = self.producer
+        await producer.start()
+        try:
+            encoded_data = json.dumps(data, cls=BytesEncoder).encode(encoding="utf-8")
+            await producer.send_and_wait(self.INSTRUCTION_KAFKA_TOPIC, encoded_data)
+        finally:
+            await producer.stop()
