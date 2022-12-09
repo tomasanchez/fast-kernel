@@ -4,7 +4,7 @@ from typing import TypeVar
 
 from aiokafka import AIOKafkaProducer
 
-from app.scehmas.base import CamelCaseModel
+from src.console.scehmas.base import CamelCaseModel
 
 T = TypeVar("T", bound=CamelCaseModel)
 

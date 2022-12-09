@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.dependencies import get_kafka_service
-from app.scehmas.instruction import Instruction
-from app.services.kafka_service import KafkaService
+from src.console.dependencies import get_kafka_service
+from src.console.scehmas.instruction import Instruction
+from src.console.services.kafka_service import KafkaService
 
 router = APIRouter(
     prefix="/instructions",
