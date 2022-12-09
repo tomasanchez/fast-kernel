@@ -4,6 +4,7 @@ from typing import TypeVar
 
 from aiokafka import AIOKafkaProducer
 
+from src.console.config import get_kafka_brokers
 from src.console.scehmas.base import CamelCaseModel
 
 T = TypeVar("T", bound=CamelCaseModel)
@@ -30,13 +31,10 @@ class BytesEncoder(json.JSONEncoder):
 class KafkaService:
     INSTRUCTION_KAFKA_TOPIC = "instructions"
 
-    def __init__(self, port="29092"):
-        self.port = port
-
     @property
     def producer(self):
         return AIOKafkaProducer(
-            bootstrap_servers=f"localhost:{self.port}",
+            bootstrap_servers=get_kafka_brokers(),
         )
 
     async def publish(self, data: list[T]):
