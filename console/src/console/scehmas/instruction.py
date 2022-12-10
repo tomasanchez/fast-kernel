@@ -23,4 +23,4 @@ class Instruction(CamelCaseModel):
     Instruction Model
     """
     name: InstructionType
-    params: list[int]
+    params: list[int] = []
