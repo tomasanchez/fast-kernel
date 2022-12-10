@@ -1,16 +1,26 @@
+from fastapi import UploadFile
+
 from src.console.scehmas.instruction import Instruction, InstructionType
 
 
 class FileParserService:
 
-    def parse(self, file_path) -> list[Instruction]:
+    async def parse(self, file: UploadFile) -> list[Instruction]:
         """
         Parses a file mapping it into a list of instructions
-        :param file_path: path to the file
+        :param file: the uploaded file
         :return: list of instructions
         """
-        with open(file_path, 'r', encoding="utf-8") as file:
-            instructions = [self.parse_line(line) for line in file]
+        content = (await file.read()).decode("utf-8").strip()
+        lines = content.split("\n")
+        instructions = [self.parse_line(line) for line in lines]
+
+        try:
+            index = instructions.index(Instruction(name="EXIT"))
+            instructions = instructions[:index + 1]
+        except ValueError:
+            instructions.append(Instruction(name="EXIT"))
+
         return instructions
 
     def parse_line(self, line: str):
@@ -22,32 +32,18 @@ class FileParserService:
         splits: list[str] = line.strip().split(' ')
         maybe_type: str = splits[0]
         instruction_type = InstructionType(maybe_type.upper())
-        self._validate_fields(instruction_type, splits)
+        self._validate_params(splits[1:])
         return Instruction(name=instruction_type, params=[int(x) for x in splits[1:]])
 
     @staticmethod
-    def _validate_fields(instruction_type: InstructionType, splits: list[str]):
+    def _validate_params(numbers: list[str]):
         """
         Validates whether the instruction has the correct number of fields and if the fields are valid
-        :param instruction_type: the instruction case
-        :param splits: the instruction parameters
-        :return:
+        :param numbers: the instruction parameters
         """
-        numbers = splits[1:]
 
         for number in numbers:
             try:
                 int(number)
             except ValueError:
                 raise ValueError(f'Invalid number: {number}')
-
-        match instruction_type:
-            case InstructionType.EXIT:
-                if len(splits) != 1:
-                    raise ValueError(f'EXIT instruction should not have any parameters')
-            case InstructionType.READ | InstructionType.NO_OP | InstructionType.IO:
-                if len(splits) != 2:
-                    raise ValueError(f'{instruction_type} instruction should have 1 parameter')
-            case InstructionType.WRITE | InstructionType.COPY:
-                if len(splits) != 3:
-                    raise ValueError(f'{instruction_type} instruction should have 2 parameters')
