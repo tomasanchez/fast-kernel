@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from src.console.scehmas.instruction import InstructionType
+from src.console.domain.schemas import InstructionType
 from src.console.services.file_parser_service import FileParserService
 
 

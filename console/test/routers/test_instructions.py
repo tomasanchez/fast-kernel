@@ -17,7 +17,6 @@ class TestInstructionRouter:
     def test_when_invalid_json__then_validation_error(self):
         response = self.client.post(self.base_url, json=[{"name": "test"}])
         assert response.status_code == 422
-        assert 'field required' in response.text
 
     def test_when_valid_json__then_publish(self):
         ks = DummyKafkaService()
