@@ -1,11 +1,30 @@
 """
- Instructions Schema
+This module describes the Schemas exposed in the API.
 """
+
 from enum import Enum
+from re import sub
 
-from pydantic import validator
+from pydantic import BaseModel, validator
 
-from .base import CamelCaseModel
+
+def to_camel(s: str) -> str:
+    """
+    Convert string to camel case
+    """
+    s = sub(r"(_|-)+", " ", s).title().replace(" ", "")
+    return ''.join([s[0].lower(), s[1:]])
+
+
+class CamelCaseModel(BaseModel):
+    """
+    A generic model that converts all keys to camelCase. A utility for serialization, built on top of Pydantic
+    BaseModel.
+    """
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
 
 
 class InstructionType(str, Enum):
@@ -43,7 +62,11 @@ class Instruction(CamelCaseModel):
         :param values: the instruction case
         :return:
         """
-        instruction_type = values['name']
+
+        try:
+            instruction_type = values['name']
+        except KeyError:
+            raise ValueError(f'Instruction should have a name')
 
         match instruction_type:
             case InstructionType.EXIT:

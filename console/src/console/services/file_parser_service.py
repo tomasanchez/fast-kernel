@@ -1,6 +1,6 @@
 from fastapi import UploadFile
 
-from src.console.scehmas.instruction import Instruction, InstructionType
+from src.console.domain.schemas import Instruction, InstructionType
 
 
 class FileParserService:

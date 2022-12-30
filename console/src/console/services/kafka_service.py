@@ -5,7 +5,7 @@ from typing import TypeVar
 from aiokafka import AIOKafkaProducer
 
 from src.console.config import get_kafka_brokers
-from src.console.scehmas.base import CamelCaseModel
+from src.console.domain.schemas import CamelCaseModel
 
 T = TypeVar("T", bound=CamelCaseModel)
 

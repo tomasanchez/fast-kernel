@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from src.console.dependencies import get_kafka_service, get_parser_service
-from src.console.scehmas.instruction import Instruction
+from src.console.domain.schemas import Instruction
 from src.console.services.file_parser_service import FileParserService
 from src.console.services.kafka_service import KafkaService
 
